@@ -81,6 +81,8 @@ for i in male_SMVs:
 for i in female_SMVs:
     Agents.append(Agent(gender='female', SMV=i, population = Agents))
 
+for agent in Agents:
+    agent.getPopulationObservation()
 
 Agents[0].pickAction("explore")
 Agents[1].pickAction("explore")

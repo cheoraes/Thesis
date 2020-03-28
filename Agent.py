@@ -18,13 +18,15 @@ class Agent:
         print(colored("Creation:", 'green'), self.personal_data(self))
 
 
+
     def personal_data(self, agent):
         color = 'blue' if agent.gender == "male" else 'magenta'
         attributes = []
         return colored(agent.name + " " + agent.gender + " " + str(agent.SMV), color, attrs=attributes)
 
-    def getObservation(self):
+    def getPopulationObservation(self):
         #population observation
+        print(colored("getPopulationObservation:", 'grey'), self.personal_data(self))
         step_size = 0.25
         ratio_step_size =0.1
         males = list(filter(lambda obj: obj.gender == 'male', self.population))
@@ -42,8 +44,8 @@ class Agent:
         male_median=np.median([a.SMV for a in males])
         female_median=np.median([a.SMV for a in females])
         male_mode=0
-        print("male MEAN", male_mean, "STD", male_std," ratio", male_ratio, "median",male_median)
-        print("female MEAN", female_mean, "STD", female_std, " ratio", female_ratio, "median",female_median)
+        #print("male MEAN", male_mean, "STD", male_std," ratio", male_ratio, "median",male_median)
+        #print("female MEAN", female_mean, "STD", female_std, " ratio", female_ratio, "median",female_median)
         self.population_observation = {
             "ratio":[int(male_ratio/ratio_step_size), int(female_ratio/ratio_step_size)],
             "mean": [int(male_mean / step_size), int(female_mean / step_size)],
@@ -55,15 +57,14 @@ class Agent:
 
     #ACTIONS
     def pickAction(self,action,target=None):
-        self.getObservation()
-
         if action =='explore':
             self.explore()
         if action =='offerSex':
             self.offerSex()
         if action =='acceptBestSexOffer':
             self.acceptBestSexOffer()
-
+        if action == 'getPopulationObservation':
+            self.getPopulationObservation()
     def explore(self):
         color='grey'
         attributes=['bold']
