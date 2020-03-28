@@ -21,7 +21,7 @@ for i in male_SMVs:
     Agents.append(Agent(gender='male', SMV=i))
 for i in female_SMVs:
     Agents.append(Agent(gender='female', SMV=i))
-
+'''
 #Population Description
 print("\nPopulation Description")
 print("Males")
@@ -62,7 +62,6 @@ print("\tGeometric Mean:", female_population_description["gmean"])
 
 
 bins = np.arange(min(male_population_description["min"], female_population_description["min"]), max(male_population_description["max"], female_population_description["max"])+1, 0.5).tolist()
-
 plt.hist([male_population_description["population"],
          female_population_description["population"]],
          bins=bins, color=['blue', 'pink'], edgecolor='black', rwidth=1.0,
@@ -79,5 +78,7 @@ plt.legend()
 plt.title('Population Description')
 plt.xlabel('SMV')
 plt.ylabel('#Agents')
-
 plt.show()
+'''
+
+Agents[0].explore(Agents)
