@@ -77,15 +77,16 @@ plt.ylabel('#Agents')
 #Agents creation
 Agents = []
 for i in male_SMVs:
-    Agents.append(Agent(gender='male', SMV=i, population = [male_population_description,female_population_description]))
+    Agents.append(Agent(gender='male', SMV=i, population = Agents))
 for i in female_SMVs:
-    Agents.append(Agent(gender='female', SMV=i, population = [male_population_description,female_population_description]))
+    Agents.append(Agent(gender='female', SMV=i, population = Agents))
 
 
-Agents[0].explore(Agents)
-Agents[1].explore(Agents)
-Agents[2].explore(Agents)
-Agents[0].offerSex()
-Agents[1].offerSex()
-Agents[2].offerSex()
-Agents[3].acceptBestSexOffer()
+Agents[0].pickAction("explore")
+Agents[1].pickAction("explore")
+Agents[2].pickAction("explore")
+Agents[0].pickAction("offerSex")
+Agents[1].pickAction("offerSex")
+Agents[2].pickAction("offerSex")
+Agents[3].pickAction("acceptBestSexOffer")
+
