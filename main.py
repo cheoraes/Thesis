@@ -1,5 +1,6 @@
 import sys
 import ast
+import os
 import json
 import math
 import statistics
@@ -75,9 +76,36 @@ for agent in Agents:
     agent.setPopulationObservation()
 
 Agents[0].pickAction("explore")
-Agents[1].pickAction("explore")
-Agents[2].pickAction("explore")
 Agents[0].pickAction("offerSex")
-Agents[1].pickAction("offerSex")
-Agents[2].pickAction("offerSex")
+Agents[1].pickAction("showObservation")
+#Agents[0].pickAction("offerSex")
+
+'''
+
+Agents[0].pickAction("explore")
+Agents[0].pickAction("offerSex")
 Agents[3].pickAction("acceptBestSexOffer")
+Agents[3].pickAction("decreaseSelfAppraisal")
+Agents[3].pickAction("decreaseSelfAppraisal")
+Agents[3].pickAction("decreaseSelfAppraisal")
+Agents[3].pickAction("decreaseSelfAppraisal")
+Agents[3].pickAction("decreaseSelfAppraisal")
+'''
+def execute(cmd):
+    command = cmd.split(' ')
+    if command[0] == 'clear':
+        print (command[0])
+        os.system('cls' if os.name == 'nt' else 'clear')
+    if command[0] in (
+            'explore',
+            'offerSex',
+            'acceptBestSexOffer',
+            'increaseSelfAppraisal',
+            'decreaseSelfAppraisal',
+            'showObservation',
+    ):
+        Agents[int(command[1])].pickAction(command[0])
+while True:
+    print('Input command (use ? for help)')
+    command = input()
+    execute(command)

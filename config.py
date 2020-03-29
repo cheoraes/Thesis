@@ -9,8 +9,8 @@ if len(sys.argv)>1:
     initial_female_population_SMVs = ast.literal_eval(sys.argv[2])
 #with no arguments
 else:
-    intial_male_population_SMVs = (4,3,5)
-    initial_female_population_SMVs = (4,1)
+    intial_male_population_SMVs = (3,)
+    initial_female_population_SMVs = (4,)
 
 # Data resolution
 resolution = {
