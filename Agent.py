@@ -7,14 +7,25 @@ from termcolor import colored, cprint
 
 
 class Agent:
-    prey = None
-    hunters = []
+    focus = None
+    sexOfferors = []
+    observation = {
+        "population": {},
+        "inner":{},
+        "focus":{},
+    }
+    age = 0
 
-    def __init__(self, gender, SMV, population):
+    alive = True
+    def __init__(self, SMV, population, config):
         self.population = population
-        self.population_observation = None
-        self.gender = gender
+        self.config = config
+
         self.SMV = SMV
+        self.gender = config["gender"]
+        self.selfAppraisal= config["self-appraisal"]
+        self.lifeExpectancy = config["life expectancy"]
+
         self.name = get_first_name(gender=self.gender)
         # print(json.dumps(self.male_population_description, indent=4))
         print(colored("Creation:", 'green'), self.personalData(self))
@@ -24,11 +35,10 @@ class Agent:
         attributes = []
         return colored(agent.name + " " + agent.gender + " " + str(agent.SMV), color, attrs=attributes)
 
-    def getPopulationObservation(self):
+    def setPopulationObservation(self):
         # population observation
         print(colored("getPopulationObservation:", 'grey'), self.personalData(self))
-        step_size = 0.25
-        ratio_step_size = 0.1
+
         males = list(filter(lambda obj: obj.gender == 'male', self.population))
         females = list(filter(lambda obj: obj.gender == 'female', self.population))
 
@@ -46,17 +56,43 @@ class Agent:
         male_mode = 0
         # print("male MEAN", male_mean, "STD", male_std," ratio", male_ratio, "median",male_median)
         # print("female MEAN", female_mean, "STD", female_std, " ratio", female_ratio, "median",female_median)
-        self.population_observation = {
-            "ratio": [int(male_ratio / ratio_step_size), int(female_ratio / ratio_step_size)],
-            "mean": [int(male_mean / step_size), int(female_mean / step_size)],
-            "std": [int(male_std / step_size), int(female_std / step_size)],
-            "median": [int(male_median / step_size), int(female_median / step_size)],
+        self.observation["population"] = {
+            "ratio": [int(male_ratio / self.config["resolution"]["ratio"]), int(female_ratio / self.config["resolution"]["ratio"])],
+            "mean": [int(male_mean / self.config["resolution"]["mean"]), int(female_mean / self.config["resolution"]["mean"])],
+            "std": [int(male_std / self.config["resolution"]["std"]), int(female_std / self.config["resolution"]["std"])],
+            "median": [int(male_median / self.config["resolution"]["median"]), int(female_median / self.config["resolution"]["median"])],
         }
 
-        print(json.dumps(self.population_observation, indent=4))
+        #print( self.population_observation )
+        #print(json.dumps(self.population_observation, indent=4))
+    def setInnerObservation(self):
+        self.observation["inner"] = {
+            "age": int(self.age/self.config["resolution"]["age"]),
+            "self-appraisal": self.selfAppraisal
+        }
+
+    def setFocusObservation(self):
+        if self.focus is not None:
+            self.observation["focus"] = {
+                "age": int(self.focus.age / self.focus.config["resolution"]["age"]),
+                "SMV": self.focus.SMV
+            }
+        else:
+            self.observation["focus"] = {}
+
+    def setObservation(self):
+        self.setInnerObservation()
+        self.setFocusObservation()
+        print(colored("Observation", "white", attrs=['reverse']))
+        attributes = ['bold']
+        print(colored("\tPopulation ", "red", attrs=attributes),self.observation["population"])
+        print(colored("\tInner ", "blue", attrs=attributes),self.observation["inner"])
+        print(colored("\tFocus ", "green", attrs=attributes),self.observation["focus"])
+        #print(json.dumps(self.observation, indent=2))
 
     # ACTIONS
     def pickAction(self, action, target=None):
+        self.setObservation()
         if action == 'explore':
             self.explore()
         if action == 'offerSex':
@@ -64,41 +100,41 @@ class Agent:
         if action == 'acceptBestSexOffer':
             self.acceptBestSexOffer()
         if action == 'getPopulationObservation':
-            self.getPopulationObservation()
+            self.setPopulationObservation()
 
     def explore(self):
         color = 'grey'
         attributes = ['bold']
         candidates = list(filter(lambda obj: obj.gender != self.gender, self.population))
-        self.prey = random.choice(candidates)
+        self.focus = random.choice(candidates)
         print(self.personalData(self), colored("runs investigation on Prey:", color, attrs=attributes),
-              self.personalData(self.prey))
+              self.personalData(self.focus))
 
     def offerSex(self):
         color = 'yellow'
         attributes = ['bold']
-        if self.prey is not None:
-            self.prey.getSexOffer(self);
+        if self.focus is not None:
+            self.focus.getSexOffer(self);
             print(self.personalData(self), colored("offers sex to ", color, attrs=attributes),
-                  self.personalData(self.prey))
+                  self.personalData(self.focus))
 
     def getSexOffer(self, agent):
         color = 'cyan'
         attributes = ['bold']
-        self.hunters.append(agent)
+        self.sexOfferors.append(agent)
         print(self.personalData(self), colored("gets Sex Offer from ", color, attrs=attributes),
               self.personalData(agent))
-        print("\thunter list")
-        for hunter in self.hunters:
+        print("\tSex Offerors' list")
+        for hunter in self.sexOfferors:
             print("\t\t" + self.personalData(hunter))
 
     def acceptBestSexOffer(self):
         color = 'green'
         attributes = ['bold']
-        if len(self.hunters) > 0:
-            self.hunters.sort(key=lambda obj: obj.SMV, reverse=True)
-            sexpartner = self.hunters.pop(0)
+        if len(self.sexOfferors) > 0:
+            self.sexOfferors.sort(key=lambda obj: obj.SMV, reverse=True)
+            sexpartner = self.sexOfferors.pop(0)
             print(self.personalData(self), colored("accept Best Sex Offer with ", color, attrs=attributes),
                   self.personalData(sexpartner))
-            self.hunters = []
-            print("\thunter list empty")
+            self.sexOfferors = []
+            print("\tSex Offerors' list empty")

@@ -16,28 +16,28 @@ import config
 print("\nPopulation Description")
 print("Males")
 male_population_description = {
-    "population": config.male_SMVs,
-    "count": len(config.male_SMVs),
-    "min": min(config.male_SMVs),
-    "max": max(config.male_SMVs),
-    "ratio": len(config.male_SMVs) / (len(config.female_SMVs) + len(config.male_SMVs)),
-    "mean": statistics.mean(config.male_SMVs),
-    "hmean": statistics.harmonic_mean(config.male_SMVs),
-    "gmean": statistics.geometric_mean(config.male_SMVs),
+    "population": config.intial_male_population_SMVs,
+    "count": len(config.intial_male_population_SMVs),
+    "min": min(config.intial_male_population_SMVs),
+    "max": max(config.intial_male_population_SMVs),
+    "ratio": len(config.intial_male_population_SMVs) / (len(config.initial_female_population_SMVs) + len(config.intial_male_population_SMVs)),
+    "mean": statistics.mean(config.intial_male_population_SMVs),
+    "hmean": statistics.harmonic_mean(config.intial_male_population_SMVs),
+    "gmean": statistics.geometric_mean(config.intial_male_population_SMVs),
 }
 
 print(json.dumps(male_population_description, indent=4))
 
 print("Female")
 female_population_description = {
-    "population": config.female_SMVs,
-    "count": len(config.female_SMVs),
-    "min": min(config.female_SMVs),
-    "max": max(config.female_SMVs),
-    "ratio": len(config.female_SMVs) / (len(config.female_SMVs) + len(config.male_SMVs)),
-    "mean": statistics.mean(config.female_SMVs),
-    "hmean": statistics.harmonic_mean(config.female_SMVs),
-    "gmean": statistics.geometric_mean(config.female_SMVs),
+    "population": config.initial_female_population_SMVs,
+    "count": len(config.initial_female_population_SMVs),
+    "min": min(config.initial_female_population_SMVs),
+    "max": max(config.initial_female_population_SMVs),
+    "ratio": len(config.initial_female_population_SMVs) / (len(config.initial_female_population_SMVs) + len(config.intial_male_population_SMVs)),
+    "mean": statistics.mean(config.initial_female_population_SMVs),
+    "hmean": statistics.harmonic_mean(config.initial_female_population_SMVs),
+    "gmean": statistics.geometric_mean(config.initial_female_population_SMVs),
 }
 print(json.dumps(female_population_description, indent=4))
 
@@ -66,13 +66,13 @@ plt.ylabel('#Agents')
 
 # Agents creation
 Agents = []
-for i in config.male_SMVs:
-    Agents.append(Agent(gender='male', SMV=i, population=Agents))
-for i in config.female_SMVs:
-    Agents.append(Agent(gender='female', SMV=i, population=Agents))
+for i in config.intial_male_population_SMVs:
+    Agents.append(Agent(SMV=i, population=Agents, config = config.male))
+for i in config.initial_female_population_SMVs:
+    Agents.append(Agent(SMV=i, population=Agents, config = config.female))
 
 for agent in Agents:
-    agent.getPopulationObservation()
+    agent.setPopulationObservation()
 
 Agents[0].pickAction("explore")
 Agents[1].pickAction("explore")
