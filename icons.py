@@ -2,6 +2,7 @@ diamond = "\u2662"
 heart = "\u2661"
 spade = "\u2660"
 fisheye ="\u25C9"
+bullseye = "\u25CE"
 female = "\u2640"
 male = "\u2642"
 

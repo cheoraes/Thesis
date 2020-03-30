@@ -25,15 +25,17 @@ class Agent:
         self.gender = config["gender"]
         self.selfAppraisal = config["self-appraisal"]
         self.lifeExpectancy = config["life expectancy"]
-        self.sexOfferors = []
+        self.sexOfferees = []
         self.name = get_first_name(gender=self.gender)
         # print(json.dumps(self.male_population_description, indent=4))
         print(colored("Creation:", 'green'), self.personalData(self))
 
     def personalData(self, agent):
+        gender_icon = icons.male if agent.gender == "male" else icons.female
         color = 'blue' if agent.gender == "male" else 'magenta'
         attributes = []
-        return colored(agent.name + " " + agent.gender + " " + str(agent.SMV), color, attrs=attributes)
+
+        return colored(agent.name + " " + gender_icon +" " + str(agent.SMV), color, attrs=attributes)
 
     def showFocus(self):
         if self.focus is not None:
@@ -41,20 +43,19 @@ class Agent:
         else:
             print("\t\t\t", self.personalData(self), "No focus")
 
-    def showSexOfferorsList(self):
-        print("\t\t\t", self.personalData(self), "Sex Offerors' list")
-        if len(self.sexOfferors) > 0:
-            self.sexOfferors.sort(key=lambda obj: obj.SMV, reverse=True)
-            for sexOfferor in self.sexOfferors:
-
-                print("\t\t\t\t " ,icons.heart, self.personalData(sexOfferor))
+    def showSexOffereeList(self):
+        print("\t\t\t", self.personalData(self), "Sex Offeree's list")
+        if len(self.sexOfferees) > 0:
+            self.sexOfferees.sort(key=lambda obj: obj.SMV, reverse=True)
+            for sexOfferee in self.sexOfferees:
+                print("\t\t\t\t ", icons.heart, self.personalData(sexOfferee))
         else:
-            print("\t\t\t\t",icons.heart, "Empty")
+            print("\t\t\t\t", icons.heart, "Empty")
 
     def getSexOffer(self, agent):
         color = 'cyan'
         attributes = ['bold']
-        self.sexOfferors.append(agent)
+        self.sexOfferees.append(agent)
         print("\t\t", self.personalData(self), colored("gets Sex Offer from ", color, attrs=attributes),
               self.personalData(agent))
 
@@ -104,11 +105,11 @@ class Agent:
             self.observation["focus"] = {}
 
     def setBestOfferObservation(self):
-        if len(self.sexOfferors) > 0:
-            self.sexOfferors.sort(key=lambda obj: obj.SMV, reverse=True)
+        if len(self.sexOfferees) > 0:
+            self.sexOfferees.sort(key=lambda obj: obj.SMV, reverse=True)
             self.observation["bestOffer"] = {
-                "name": self.sexOfferors[0].name,
-                "SMV": self.sexOfferors[0].SMV,
+                "name": self.sexOfferees[0].name,
+                "SMV": self.sexOfferees[0].SMV,
             }
         else:
             self.observation["bestOffer"] = {}
@@ -144,7 +145,7 @@ class Agent:
         if action == 'decreaseSelfAppraisal':
             self.updateSelfAppraisal(-1)
         self.showFocus()
-        self.showSexOfferorsList()
+        self.showSexOffereeList()
 
     def updateSelfAppraisal(self, val):
         color = 'grey'
@@ -174,9 +175,9 @@ class Agent:
     def acceptBestSexOffer(self):
         color = 'green'
         attributes = ['bold']
-        if len(self.sexOfferors) > 0:
-            self.sexOfferors.sort(key=lambda obj: obj.SMV, reverse=True)
-            sexPartner = self.sexOfferors.pop(0)
+        if len(self.sexOfferees) > 0:
+            self.sexOfferees.sort(key=lambda obj: obj.SMV, reverse=True)
+            sexPartner = self.sexOfferees.pop(0)
             print("\t\t", self.personalData(self), colored("accept Best Sex Offer with ", color, attrs=attributes),
                   self.personalData(sexPartner))
-            self.sexOfferors = []
+            self.sexOfferees = []
