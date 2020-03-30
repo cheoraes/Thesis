@@ -24,7 +24,8 @@ reward_policy = {
     "increaseSelfAppraisal": 0,
     "decreaseSelfAppraisal": 0,
     "setPopulationObservation": -3,
-    "showObservation": 0
+    "showObservation": 0,
+    "sex":(0,10,20,30,40,50)
 
 }
 
@@ -34,8 +35,8 @@ male = {
     "life expectancy": 100,
     "self-appraisal": 5,
     "resolution": resolution,
-    "reward_policy": reward_policy,
-    "parental_care": 2
+    "reward policy": reward_policy,
+    "parental care": 2
 }
 
 # Female Configuration
@@ -44,6 +45,6 @@ female = {
     "life expectancy": 100,
     "self-appraisal": 5,
     "resolution": resolution,
-    "reward_policy": reward_policy,
+    "reward policy": reward_policy,
     "parental_care": 6
 }

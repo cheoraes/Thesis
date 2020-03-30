@@ -79,11 +79,6 @@ Agents[0].pickAction("explore")
 Agents[1].pickAction("explore")
 Agents[0].pickAction("offerSex")
 Agents[1].pickAction("offerSex")
-
-
-Agents[0].pickAction("showObservation")
-Agents[1].pickAction("showObservation")
-Agents[2].pickAction("showObservation")
 Agents[2].pickAction("acceptBestSexOffer")
 
 

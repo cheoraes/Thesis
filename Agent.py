@@ -37,7 +37,8 @@ class Agent:
         color = 'blue' if agent.gender == "male" else 'magenta'
         attributes = []
 
-        return colored(agent.name + " ("+str(self.age)+") " + gender_icon + " " + str(agent.SMV), color, attrs=attributes)
+        return colored(agent.name + " (" + str(self.age) + ") " + gender_icon + str(agent.SMV), color,
+                       attrs=attributes)
 
     def showFocus(self):
         if self.focus is not None:
@@ -65,11 +66,12 @@ class Agent:
 
         self.age += 1
         self.total_reward += self.episode_reward
-        print(icons.diamond,"toAge", self.personalData(self), "Episode Reward", self.episode_reward,"Total Reward", self.total_reward)
+        print(icons.diamond, "toAge", self.personalData(self), "Episode Reward", self.episode_reward, "Total Reward",
+              self.total_reward)
         self.episode_reward = 0
 
+        # Observations
 
-    # Observations
     def setPopulationObservation(self):
         # population observation
         print("*", colored("setPopulationObservation:", 'grey'), self.personalData(self))
@@ -139,9 +141,10 @@ class Agent:
         print("\n*", self.personalData(self))
         print(colored("\tPre Action Observation", "grey", attrs=["concealed"]))
         self.setObservation()
-        print(colored("\tAction ", "green", attrs=['bold']), action)
 
-        self.episode_reward += int(self.config["reward_policy"][action])
+        action_cost = int(self.config["reward policy"][action])
+        self.episode_reward += action_cost
+        print(colored("\tAction ", "green", attrs=['bold']), action, "reward:", action_cost)
         if action == 'showObservation':
             None
         if action == 'explore':
@@ -190,6 +193,11 @@ class Agent:
         if len(self.sexOfferees) > 0:
             self.sexOfferees.sort(key=lambda obj: obj.SMV, reverse=True)
             sexPartner = self.sexOfferees.pop(0)
-            print("\t\t", self.personalData(self), colored("accept Best Sex Offer with ", color, attrs=attributes),
-                  self.personalData(sexPartner))
+            reward_to_sexPartner = sexPartner.config["reward policy"]["sex"][self.SMV]
+            reward_to_me = self.config["reward policy"]["sex"][sexPartner.SMV]
+            sexPartner.episode_reward += reward_to_sexPartner
+            self.episode_reward += reward_to_me
+            print("\t\t", self.personalData(self), "reward:", reward_to_me,
+                  colored("accept Best Sex Offer with ", color, attrs=attributes),
+                  self.personalData(sexPartner), "reward", reward_to_sexPartner)
             self.sexOfferees = []
