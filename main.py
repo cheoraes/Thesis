@@ -14,8 +14,7 @@ from Agent import Agent
 import config
 
 # Population Description
-print("\nPopulation Description")
-print("Males")
+
 male_population_description = {
     "population": config.intial_male_population_SMVs,
     "count": len(config.intial_male_population_SMVs),
@@ -27,9 +26,7 @@ male_population_description = {
     "gmean": statistics.geometric_mean(config.intial_male_population_SMVs),
 }
 
-print(json.dumps(male_population_description, indent=4))
 
-print("Female")
 female_population_description = {
     "population": config.initial_female_population_SMVs,
     "count": len(config.initial_female_population_SMVs),
@@ -40,7 +37,12 @@ female_population_description = {
     "hmean": statistics.harmonic_mean(config.initial_female_population_SMVs),
     "gmean": statistics.geometric_mean(config.initial_female_population_SMVs),
 }
-print(json.dumps(female_population_description, indent=4))
+
+# print("\nPopulation Description")
+# print("Males")
+# print(json.dumps(male_population_description, indent=4))
+# print("Female")
+# print(json.dumps(female_population_description, indent=4))
 
 bins = np.arange(min(male_population_description["min"], female_population_description["min"]),
                  max(male_population_description["max"], female_population_description["max"]) + 1, 0.5).tolist()
@@ -72,24 +74,19 @@ for i in config.intial_male_population_SMVs:
 for i in config.initial_female_population_SMVs:
     Agents.append(Agent(SMV=i, population=Agents, config = config.female))
 
-for agent in Agents:
-    agent.setPopulationObservation()
 
 Agents[0].pickAction("explore")
+Agents[1].pickAction("explore")
 Agents[0].pickAction("offerSex")
+Agents[1].pickAction("offerSex")
+
+
+Agents[0].pickAction("showObservation")
 Agents[1].pickAction("showObservation")
-#Agents[0].pickAction("offerSex")
+Agents[2].pickAction("showObservation")
+Agents[2].pickAction("acceptBestSexOffer")
 
-'''
-
-Agents[0].pickAction("explore")
-Agents[0].pickAction("offerSex")
-Agents[3].pickAction("acceptBestSexOffer")
-Agents[3].pickAction("decreaseSelfAppraisal")
-Agents[3].pickAction("decreaseSelfAppraisal")
-Agents[3].pickAction("decreaseSelfAppraisal")
-Agents[3].pickAction("decreaseSelfAppraisal")
-Agents[3].pickAction("decreaseSelfAppraisal")
+Agents[2].pickAction("showObservation")
 '''
 def execute(cmd):
     command = cmd.split(' ')
@@ -103,9 +100,11 @@ def execute(cmd):
             'increaseSelfAppraisal',
             'decreaseSelfAppraisal',
             'showObservation',
+            'setPopulationObservation',
     ):
         Agents[int(command[1])].pickAction(command[0])
 while True:
     print('Input command (use ? for help)')
     command = input()
     execute(command)
+'''
