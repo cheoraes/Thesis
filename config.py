@@ -16,6 +16,16 @@ resolution = {
     "age": 5,
 }
 
+action_space = [
+    "explore",
+    "offerSex",
+    "acceptBestSexOffer",
+    "increaseSelfAppraisal",
+    "decreaseSelfAppraisal",
+    "setPopulationObservation",
+]
+
+
 # Reward Policy
 reward_policy = {
     "explore": -1,
@@ -32,19 +42,19 @@ reward_policy = {
 # Male Cconfiguration
 male = {
     "gender": "male",
-    "life expectancy": 100,
+    "life expectancy": 10,
     "self-appraisal": 5,
     "resolution": resolution,
     "reward policy": reward_policy,
-    "parental care": 2
+    "action space": action_space,
 }
 
 # Female Configuration
 female = {
     "gender": "female",
-    "life expectancy": 100,
+    "life expectancy": 10,
     "self-appraisal": 5,
     "resolution": resolution,
     "reward policy": reward_policy,
-    "parental_care": 6
+    "action space": action_space,
 }

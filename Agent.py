@@ -64,14 +64,17 @@ class Agent:
 
     def toAge(self):
 
-        self.age += 1
+
         self.total_reward += self.episode_reward
         print(icons.diamond, "toAge", self.personalData(self), "Episode Reward", self.episode_reward, "Total Reward",
               self.total_reward)
         self.episode_reward = 0
+        self.age += 1
+        if self.age >= self.lifeExpectancy:
+            self.alive=False
+            print (icons.cross, self.personalData(self))
 
-        # Observations
-
+    # Observations
     def setPopulationObservation(self):
         # population observation
         print("*", colored("setPopulationObservation:", 'grey'), self.personalData(self))

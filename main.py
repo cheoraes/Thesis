@@ -81,9 +81,9 @@ Agents[0].pickAction("offerSex")
 Agents[1].pickAction("offerSex")
 Agents[2].pickAction("acceptBestSexOffer")
 
-
-for agent in Agents:
-    agent.toAge()
+for i in range(10):
+    for agent in Agents:
+        agent.toAge()
 '''
 def execute(cmd):
     command = cmd.split(' ')

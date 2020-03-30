@@ -1,3 +1,4 @@
+# https://www.fileformat.info/info/unicode/version/1.1/index.htm
 diamond = "\u2662"
 heart = "\u2661"
 spade = "\u2660"
@@ -5,7 +6,8 @@ fisheye ="\u25C9"
 bullseye = "\u25CE"
 female = "\u2640"
 male = "\u2642"
-
+skull = "\u2620"
+cross = "\u271D"
 WHEEL_OF_DHARMA = "\u2638"
 WHITE_FROWNING_FACE = "\u2639"	
 WHITE_SMILING_FACE = "\u263A"	
