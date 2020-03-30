@@ -14,6 +14,7 @@ class Agent:
         self.config = config
         self.SMV = SMV
         self.focus = None
+        self.sexOfferees = []
         self.observation = {
             "population": {},
             "inner": {},
@@ -22,12 +23,13 @@ class Agent:
         }
         self.age = 0
         self.alive = True
-        self.gender = config["gender"]
-        self.selfAppraisal = config["self-appraisal"]
-        self.lifeExpectancy = config["life expectancy"]
-        self.sexOfferees = []
+        self.gender = self.config["gender"]
+        self.selfAppraisal = self.config["self-appraisal"]
+        self.lifeExpectancy = self.config["life expectancy"]
         self.name = get_first_name(gender=self.gender)
-        # print(json.dumps(self.male_population_description, indent=4))
+        self.episode_reward = 0
+        self.total_reward = 0
+
         print(colored("Creation:", 'green'), self.personalData(self))
 
     def personalData(self, agent):
@@ -35,7 +37,7 @@ class Agent:
         color = 'blue' if agent.gender == "male" else 'magenta'
         attributes = []
 
-        return colored(agent.name + " " + gender_icon +" " + str(agent.SMV), color, attrs=attributes)
+        return colored(agent.name + " ("+str(self.age)+") " + gender_icon + " " + str(agent.SMV), color, attrs=attributes)
 
     def showFocus(self):
         if self.focus is not None:
@@ -58,6 +60,14 @@ class Agent:
         self.sexOfferees.append(agent)
         print("\t\t", self.personalData(self), colored("gets Sex Offer from ", color, attrs=attributes),
               self.personalData(agent))
+
+    def toAge(self):
+
+        self.age += 1
+        self.total_reward += self.episode_reward
+        print(icons.diamond,"toAge", self.personalData(self), "Episode Reward", self.episode_reward,"Total Reward", self.total_reward)
+        self.episode_reward = 0
+
 
     # Observations
     def setPopulationObservation(self):
@@ -130,6 +140,8 @@ class Agent:
         print(colored("\tPre Action Observation", "grey", attrs=["concealed"]))
         self.setObservation()
         print(colored("\tAction ", "green", attrs=['bold']), action)
+
+        self.episode_reward += int(self.config["reward_policy"][action])
         if action == 'showObservation':
             None
         if action == 'explore':

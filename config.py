@@ -24,6 +24,8 @@ reward_policy = {
     "increaseSelfAppraisal": 0,
     "decreaseSelfAppraisal": 0,
     "setPopulationObservation": -3,
+    "showObservation": 0
+
 }
 
 # Male Cconfiguration
