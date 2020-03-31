@@ -14,7 +14,7 @@ resolution = {
     "mean": 0.2,
     "median": 0.2,
     "age": 1,
-    "reward memory": 3,
+    "rewards memory buffer": 3,
     "reward": 5,
 }
 
@@ -27,6 +27,64 @@ action_space = [
     "setPopulationObservation",
 ]
 
+observation_filter = {
+    "population": {
+        "ratio": {
+            "active": True,
+            "resolution": 0.1,
+        },
+        "mean": {
+            "active": True,
+            "resolution": 0.25,
+        },
+        "std": {
+            "active": False,
+            "resolution": 0.1,
+        },
+        "median": {
+            "active": False,
+            "resolution": 0.1,
+        },
+    },
+    "inner": {
+        "age": {
+            "active": True,
+            "resolution": 3,
+        },
+        "SMV": {
+            "active": False,
+            "resolution": 1,
+        },
+        "self-appraisal": {
+            "active": True,
+            "resolution": 1,
+        },
+        "reward": {
+            "episode rewards": {
+                "active": False,
+                "buffer": 3,
+                "resolution": 2,
+            },
+        }
+    },
+    "focus": {
+        "age": {
+            "active": True,
+            "resolution": 0.1,
+        },
+        "SMV": {
+            "active": True,
+            "resolution": 1,
+        },
+    },
+    "bestOffer": {
+        "SMV": {
+            "active": True,
+            "resolution": 1,
+        },
+    }
+}
+
 # Reward Policy
 reward_policy = {
     "explore": -1,
@@ -37,7 +95,6 @@ reward_policy = {
     "setPopulationObservation": -3,
     "showObservation": 0,
     "sex": (0, 10, 20, 30, 40, 50)
-
 }
 
 # Male Cconfiguration
@@ -48,6 +105,7 @@ male = {
     "resolution": resolution,
     "reward policy": reward_policy,
     "action space": action_space,
+    "observation filter": observation_filter,
 }
 
 # Female Configuration
@@ -58,4 +116,5 @@ female = {
     "resolution": resolution,
     "reward policy": reward_policy,
     "action space": action_space,
+    "observation filter": observation_filter,
 }

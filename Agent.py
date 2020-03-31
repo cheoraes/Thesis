@@ -29,7 +29,7 @@ class Agent:
         self.name = get_first_name(gender=self.gender)
         self.selected_action = None
         self.episode_reward = 0
-        self.rewards = [0]
+        self.rewards = []
 
         print(colored("Creation:", 'green'), self.personalData(self))
 
@@ -84,41 +84,30 @@ class Agent:
 
         male_ratio = len(males) / len(self.population)
         female_ratio = len(females) / len(self.population)
-
         male_mean = np.mean([a.SMV for a in males])
         female_mean = np.mean([a.SMV for a in females])
-
         male_std = np.std([a.SMV for a in males])
         female_std = np.std([a.SMV for a in females])
-
         male_median = np.median([a.SMV for a in males])
         female_median = np.median([a.SMV for a in females])
+
         self.observation["population"] = {
-            "ratio": [int(male_ratio / self.config["resolution"]["ratio"]),
-                      int(female_ratio / self.config["resolution"]["ratio"])],
-            "mean": [int(male_mean / self.config["resolution"]["mean"]),
-                     int(female_mean / self.config["resolution"]["mean"])],
-            "std": [int(male_std / self.config["resolution"]["std"]),
-                    int(female_std / self.config["resolution"]["std"])],
-            "median": [int(male_median / self.config["resolution"]["median"]),
-                       int(female_median / self.config["resolution"]["median"])],
+            "ratio": [male_ratio, female_ratio],
+            "mean": [male_mean, female_mean],
+            "std": [male_std, female_std],
+            "median": [male_median, female_median],
         }
 
         print("\t\t", colored("setPopulationObservation:", 'grey'), self.personalData(self))
         print("\t\t\t", self.observation["population"])
 
     def setInnerObservation(self):
-        reward_mean = 999999
-
-
-
         self.observation["inner"] = {
-            "age": int(self.age / self.config["resolution"]["age"]),
+            "age": self.age,
+            "SMV": self.SMV,
             "self-appraisal": self.selfAppraisal,
             "reward": {
                 "episode rewards": self.rewards,
-                "mean": np.mean(self.rewards[-self.config["resolution"]["reward memory"]:])/ self.config["resolution"]["reward"],
-
             }
         }
 
@@ -145,11 +134,160 @@ class Agent:
         self.setInnerObservation()
         self.setFocusObservation()
         self.setBestOfferObservation()
-        attributes = ['bold']
-        print(colored("\t\tPopulation ", "red", attrs=attributes), self.observation["population"])
-        print(colored("\t\tInner ", "red", attrs=attributes), self.observation["inner"])
-        print(colored("\t\tFocus ", "red", attrs=attributes), self.observation["focus"])
-        print(colored("\t\tBest Offer ", "red", attrs=attributes), self.observation["bestOffer"])
+
+        print(colored("\t\tPopulation ", "red", attrs=['bold']), self.observation["population"])
+        print(colored("\t\tInner ", "red", attrs=['bold']), self.observation["inner"])
+        print(colored("\t\tFocus ", "red", attrs=['bold']), self.observation["focus"])
+        print(colored("\t\tBest Offer ", "red", attrs=['bold']), self.observation["bestOffer"])
+        self.filteredObservation()
+
+    def filteredObservation(self):
+        print("\t", icons.fisheye, colored("Filtered Observation", "grey", attrs=["concealed"]))
+        header=[]
+        obs = []
+
+        def filterField(field, config, val, color="cyan"):
+            obs = int(val / config["resolution"])
+            print(colored("\t\t" + field, color, attrs=['bold']), "obs", obs, "| val", val, "| res",
+                  config["resolution"])
+            return obs
+
+        #POPULATION
+        #MALE FEMALE RATIO
+        if self.config["observation filter"]["population"]["ratio"]["active"]:
+            header.append("Male/female ratio")
+            if "ratio" in self.observation["population"]:
+                obs.append(filterField("Male ratio", self.config["observation filter"]["population"]["ratio"],
+                                       self.observation["population"]["ratio"][0]))
+            else:
+                obs.append(None)
+        #MALE FEMALE MEANS
+        if self.config["observation filter"]["population"]["mean"]["active"]:
+            header.append("Male mean")
+            header.append("Female mean")
+
+            if "mean" in self.observation["population"]:
+                obs.append(filterField("Male mean", self.config["observation filter"]["population"]["mean"],
+                                       self.observation["population"]["mean"][0]))
+                obs.append(filterField("Female mean", self.config["observation filter"]["population"]["mean"],
+                                       self.observation["population"]["mean"][1]))
+            else:
+                obs.append(None)
+                obs.append(None)
+        # MALE FEMALE STANDARD DEVIATION
+        if self.config["observation filter"]["population"]["std"]["active"]:
+            header.append("Male Std")
+            header.append("Female Std")
+            if "std" in self.observation["population"]:
+                obs.append(filterField("Male std", self.config["observation filter"]["population"]["std"],
+                                       self.observation["population"]["std"][0]))
+                obs.append(filterField("Female std", self.config["observation filter"]["population"]["std"],
+                                       self.observation["population"]["std"][1]))
+            else:
+                obs.append(None)
+                obs.append(None)
+
+        #INNER
+        #SELF AGE
+        if self.config["observation filter"]["inner"]["age"]["active"]:
+            header.append("Self-Age")
+            obs.append(filterField("Self Age", self.config["observation filter"]["inner"]["age"],
+                                   self.observation["inner"]["age"], "magenta"))
+        #SELF SMV
+        if self.config["observation filter"]["inner"]["SMV"]["active"]:
+            header.append("Self SMV")
+            obs.append(filterField("Self SMV", self.config["observation filter"]["inner"]["SMV"],
+                                   self.observation["inner"]["SMV"], "magenta"))
+        #SELF-APPRAISAL
+        if self.config["observation filter"]["inner"]["self-appraisal"]["active"]:
+            header.append("Self-Appraisal")
+            obs.append(filterField("self-appraisal", self.config["observation filter"]["inner"]["self-appraisal"],
+                                   self.observation["inner"]["self-appraisal"], "magenta"))
+        #REWARDS
+        if self.config["observation filter"]["inner"]["reward"]["episode rewards"]["active"]:
+            header.append("episode rewards")
+            buffer = self.config["observation filter"]["inner"]["reward"]["episode rewards"]["buffer"]
+            resolution = self.config["observation filter"]["inner"]["reward"]["episode rewards"]["resolution"]
+            if len(self.rewards)>0:
+                ep_rew_buffer_sum = sum(self.observation["inner"]["reward"]["episode rewards"][-buffer:])
+                ep_rew_buffer_sum_low_resolution = ep_rew_buffer_sum/resolution
+                obs.append(ep_rew_buffer_sum_low_resolution)
+            else:
+                obs.append(0)
+        #FOCUS
+        #FOCUS AGE
+        if self.config["observation filter"]["focus"]["age"]["active"]:
+            header.append("Focus Age")
+            if "age" in self.observation["focus"]:
+                obs.append(filterField("Focus Age", self.config["observation filter"]["focus"]["age"],
+                                       self.observation["focus"]["age"], "magenta"))
+            else:
+                obs.append(None)
+        #FOCUS SMV
+        if self.config["observation filter"]["focus"]["SMV"]["active"]:
+            header.append("Focus SMV")
+            if "SMV" in self.observation["focus"]:
+                obs.append(filterField("Focus SMV", self.config["observation filter"]["focus"]["SMV"],
+                                       self.observation["focus"]["SMV"], "magenta"))
+            else:
+                obs.append(None)
+
+        #BEST OFFER
+        if self.config["observation filter"]["bestOffer"]["SMV"]["active"]:
+            header.append("Best offer SMV")
+            if "SMV" in self.observation["bestOffer"]:
+                obs.append(filterField("bestOffer SMV", self.config["observation filter"]["bestOffer"]["SMV"],
+                                       self.observation["bestOffer"]["SMV"], "yellow"))
+            else:
+                obs.append(None)
+        #
+        print("\n")
+        print("Header", header)
+        print("\n")
+        print("OBS", obs)
+
+
+        # #FILTER INNER OBSERVATION
+        # if self.config["observation filter"]["inner"]["age"]["active"]:
+        #     field = "Age"
+        #     val = self.observation["inner"]["age"]
+        #     res = self.config["observation filter"]["inner"]["age"]["resolution"]
+        #     obs = int(val/res)
+        #     print(colored("\t\t"+ field, "cyan", attrs=['bold']),"obs", obs, "| val", val, "| res" ,res)
+        #
+        # if self.config["observation filter"]["inner"]["SMV"]["active"]:
+        #     field = "SMV"
+        #     val = self.observation["inner"]["SMV"]
+        #     res = self.config["observation filter"]["inner"]["SMV"]["resolution"]
+        #     obs = int(val / res)
+        #     print(colored("\t\t" + field, "cyan", attrs=['bold']), "obs", obs, "| val", val, "| res", res)
+
+        # if self.config["observation filter"]["inner"]["SMV"][0]:
+        #     SMV_observation = int(self.observation["inner"]["SMV"]/self.config["observation filter"]["inner"]["SMV"][1])
+        #     print(colored("\t\tSMV observation:", "cyan", attrs=['bold']), SMV_observation,
+        #           ", SMV:", self.observation["inner"]["SMV"],
+        #           ", resolution:", self.config["observation filter"]["inner"]["SMV"][1],
+        #           )
+        # if self.config["observation filter"]["inner"]["self-appraisal"][0]:
+        #     selfAppraisal_observation = int(self.observation["inner"]["self-appraisal"]/self.config["observation filter"]["inner"]["self-appraisal"][1])
+        #     print(colored("\t\tSelf-appraisal obs:", "cyan", attrs=['bold']), selfAppraisal_observation,
+        #           ", Self-appraisal:", self.observation["inner"]["self-appraisal"],
+        #           ", resolution:", self.config["observation filter"]["inner"]["self-appraisal"][1],
+        #           )
+        # if self.config["observation filter"]["inner"]["reward"]["episode rewards"][0]:
+        #     buffer = self.config["observation filter"]["inner"]["reward"]["episode rewards"][1]
+        #     resolution =
+        #     ep_rew_buffer_sum = sum(self.observation["inner"]["reward"]["episode rewards"][-buffer:])
+        #     ep_rew_buffer_sum_low_res =
+        #     episode_rewards_observation_buffer_sum = sum(self.observation["inner"]["reward"]["episode rewards"][-buffer:])
+        #
+        #
+        #     episode_rewards_observation_buffer_sum_low_resolution = int(episode_rewards_observation_buffer_sum_obs/self.config["observation filter"]["inner"]["reward"]["episode rewards"][2])
+        #     print(colored("\t\tEpisode rewards buffer sum observation:", "cyan", attrs=['bold']), episode_rewards_observation_buffer_sum_obs,
+        #           ", Buffer:", self.observation["inner"]["self-appraisal"],
+        #           ", resolution:", self.config["observation filter"]["inner"]["self-appraisal"][1],
+        #
+        #           )
 
     # ACTIONS
     def actionSpaceSample(self):

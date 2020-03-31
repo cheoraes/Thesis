@@ -87,6 +87,7 @@ for i in range(5):
     for agent in Agents:
         agent.toAge()
     print("\n--Episode ", i , "------------------------------\n")
+#print(json.dumps(Agents[0].observation, indent=4))
 
 '''
 def execute(cmd):
