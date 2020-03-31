@@ -27,8 +27,9 @@ class Agent:
         self.selfAppraisal = self.config["self-appraisal"]
         self.lifeExpectancy = self.config["life expectancy"]
         self.name = get_first_name(gender=self.gender)
+        self.selected_action = None
         self.episode_reward = 0
-        self.total_reward = 0
+        self.rewards = [0]
 
         print(colored("Creation:", 'green'), self.personalData(self))
 
@@ -63,21 +64,20 @@ class Agent:
               self.personalData(agent))
 
     def toAge(self):
-
-
-        self.total_reward += self.episode_reward
-        print(icons.diamond, "toAge", self.personalData(self), "Episode Reward", self.episode_reward, "Total Reward",
-              self.total_reward)
+        self.rewards.append(self.episode_reward)
+        print("\t", icons.diamond, "toAge", self.personalData(self), "Episode Reward", self.episode_reward,
+              "Total Reward",
+              sum(self.rewards))
         self.episode_reward = 0
         self.age += 1
         if self.age >= self.lifeExpectancy:
-            self.alive=False
-            print (icons.cross, self.personalData(self))
+            self.alive = False
+            print("\t\t", icons.cross, self.personalData(self), "is Dead", icons.cross)
+            self.setObservation()
 
     # Observations
     def setPopulationObservation(self):
         # population observation
-        print("*", colored("setPopulationObservation:", 'grey'), self.personalData(self))
 
         males = list(filter(lambda obj: obj.gender == 'male', self.population))
         females = list(filter(lambda obj: obj.gender == 'female', self.population))
@@ -104,10 +104,22 @@ class Agent:
                        int(female_median / self.config["resolution"]["median"])],
         }
 
+        print("\t\t", colored("setPopulationObservation:", 'grey'), self.personalData(self))
+        print("\t\t\t", self.observation["population"])
+
     def setInnerObservation(self):
+        reward_mean = 999999
+
+
+
         self.observation["inner"] = {
             "age": int(self.age / self.config["resolution"]["age"]),
-            "self-appraisal": self.selfAppraisal
+            "self-appraisal": self.selfAppraisal,
+            "reward": {
+                "episode rewards": self.rewards,
+                "mean": np.mean(self.rewards[-self.config["resolution"]["reward memory"]:])/ self.config["resolution"]["reward"],
+
+            }
         }
 
     def setFocusObservation(self):
@@ -140,28 +152,39 @@ class Agent:
         print(colored("\t\tBest Offer ", "red", attrs=attributes), self.observation["bestOffer"])
 
     # ACTIONS
+    def actionSpaceSample(self):
+        if self.alive:
+            self.selected_action = np.random.choice(self.config["action space"])
+            self.pickAction(self.selected_action)
+
     def pickAction(self, action, target=None):
-        print("\n*", self.personalData(self))
-        print(colored("\tPre Action Observation", "grey", attrs=["concealed"]))
+        print("\n", icons.man, self.personalData(self))
+        print("\t", icons.fisheye, colored("Pre Action Observation", "grey", attrs=["concealed"]))
         self.setObservation()
 
         action_cost = int(self.config["reward policy"][action])
         self.episode_reward += action_cost
-        print(colored("\tAction ", "green", attrs=['bold']), action, "reward:", action_cost)
+        print("\t", icons.spade, colored(action, "green", attrs=['bold']), "reward:", action_cost)
         if action == 'showObservation':
             None
         if action == 'explore':
             self.explore()
+
         if action == 'offerSex':
             self.offerSex()
+
         if action == 'acceptBestSexOffer':
             self.acceptBestSexOffer()
+
         if action == 'setPopulationObservation':
             self.setPopulationObservation()
+
         if action == 'increaseSelfAppraisal':
             self.updateSelfAppraisal(1)
+
         if action == 'decreaseSelfAppraisal':
             self.updateSelfAppraisal(-1)
+
         self.showFocus()
         self.showSexOffereeList()
 
@@ -171,7 +194,8 @@ class Agent:
         old = self.selfAppraisal
         self.selfAppraisal += val
         if self.selfAppraisal < 0: self.selfAppraisal = 0
-        print(self.personalData(self), colored("update Self-appraisal", color, attrs=attributes), "(" + str(val) + ") ",
+        print("\t\t", self.personalData(self), colored("update Self-appraisal", color, attrs=attributes),
+              "(" + str(val) + ") ",
               old, "-->", self.selfAppraisal)
 
     def explore(self):

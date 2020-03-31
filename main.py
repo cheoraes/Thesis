@@ -16,14 +16,14 @@ import config
 # Population Description
 
 male_population_description = {
-    "population": config.intial_male_population_SMVs,
-    "count": len(config.intial_male_population_SMVs),
-    "min": min(config.intial_male_population_SMVs),
-    "max": max(config.intial_male_population_SMVs),
-    "ratio": len(config.intial_male_population_SMVs) / (len(config.initial_female_population_SMVs) + len(config.intial_male_population_SMVs)),
-    "mean": statistics.mean(config.intial_male_population_SMVs),
-    "hmean": statistics.harmonic_mean(config.intial_male_population_SMVs),
-    "gmean": statistics.geometric_mean(config.intial_male_population_SMVs),
+    "population": config.initial_male_population_SMVs,
+    "count": len(config.initial_male_population_SMVs),
+    "min": min(config.initial_male_population_SMVs),
+    "max": max(config.initial_male_population_SMVs),
+    "ratio": len(config.initial_male_population_SMVs) / (len(config.initial_female_population_SMVs) + len(config.initial_male_population_SMVs)),
+    "mean": statistics.mean(config.initial_male_population_SMVs),
+    "hmean": statistics.harmonic_mean(config.initial_male_population_SMVs),
+    "gmean": statistics.geometric_mean(config.initial_male_population_SMVs),
 }
 
 
@@ -32,7 +32,7 @@ female_population_description = {
     "count": len(config.initial_female_population_SMVs),
     "min": min(config.initial_female_population_SMVs),
     "max": max(config.initial_female_population_SMVs),
-    "ratio": len(config.initial_female_population_SMVs) / (len(config.initial_female_population_SMVs) + len(config.intial_male_population_SMVs)),
+    "ratio": len(config.initial_female_population_SMVs) / (len(config.initial_female_population_SMVs) + len(config.initial_male_population_SMVs)),
     "mean": statistics.mean(config.initial_female_population_SMVs),
     "hmean": statistics.harmonic_mean(config.initial_female_population_SMVs),
     "gmean": statistics.geometric_mean(config.initial_female_population_SMVs),
@@ -69,21 +69,25 @@ plt.ylabel('#Agents')
 
 # Agents creation
 Agents = []
-for i in config.intial_male_population_SMVs:
+for i in config.initial_male_population_SMVs:
     Agents.append(Agent(SMV=i, population=Agents, config = config.male))
 for i in config.initial_female_population_SMVs:
     Agents.append(Agent(SMV=i, population=Agents, config = config.female))
 
 
-Agents[0].pickAction("explore")
-Agents[1].pickAction("explore")
-Agents[0].pickAction("offerSex")
-Agents[1].pickAction("offerSex")
-Agents[2].pickAction("acceptBestSexOffer")
+# Agents[0].pickAction("explore")
+# Agents[1].pickAction("explore")
+# Agents[0].pickAction("offerSex")
+# Agents[1].pickAction("offerSex")
+# Agents[2].pickAction("acceptBestSexOffer")
 
-for i in range(10):
+for i in range(5):
+    for agent in Agents:
+        agent.actionSpaceSample()
     for agent in Agents:
         agent.toAge()
+    print("\n--Episode ", i , "------------------------------\n")
+
 '''
 def execute(cmd):
     command = cmd.split(' ')
