@@ -81,7 +81,7 @@ for i in config.initial_female_population_SMVs:
 # Agents[1].pickAction("offerSex")
 # Agents[2].pickAction("acceptBestSexOffer")
 
-for i in range(5):
+for i in range(config.male["life expectancy"]):
     for agent in Agents:
         agent.actionSpaceSample()
     for agent in Agents:

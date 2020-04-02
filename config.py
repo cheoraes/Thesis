@@ -27,14 +27,15 @@ action_space = [
     "setPopulationObservation",
 ]
 
+
 observation_filter = {
     "population": {
         "ratio": {
-            "active": True,
+            "active": False,
             "resolution": 0.1,
         },
         "mean": {
-            "active": True,
+            "active": False,
             "resolution": 0.25,
         },
         "std": {
@@ -48,15 +49,15 @@ observation_filter = {
     },
     "inner": {
         "age": {
-            "active": True,
+            "active": False,
             "resolution": 3,
         },
         "SMV": {
-            "active": False,
+            "active": True,
             "resolution": 1,
         },
         "self-appraisal": {
-            "active": True,
+            "active": False,
             "resolution": 1,
         },
         "reward": {
@@ -69,7 +70,7 @@ observation_filter = {
     },
     "focus": {
         "age": {
-            "active": True,
+            "active": False,
             "resolution": 0.1,
         },
         "SMV": {
@@ -100,7 +101,7 @@ reward_policy = {
 # Male Cconfiguration
 male = {
     "gender": "male",
-    "life expectancy": 5,
+    "life expectancy": 50,
     "self-appraisal": 5,
     "resolution": resolution,
     "reward policy": reward_policy,
@@ -111,7 +112,7 @@ male = {
 # Female Configuration
 female = {
     "gender": "female",
-    "life expectancy": 5,
+    "life expectancy": 50,
     "self-appraisal": 5,
     "resolution": resolution,
     "reward policy": reward_policy,

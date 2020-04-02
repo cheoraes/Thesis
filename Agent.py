@@ -30,6 +30,7 @@ class Agent:
         self.selected_action = None
         self.episode_reward = 0
         self.rewards = []
+        self.DNAPolicy = {}
 
         print(colored("Creation:", 'green'), self.personalData(self))
 
@@ -74,6 +75,9 @@ class Agent:
             self.alive = False
             print("\t\t", icons.cross, self.personalData(self), "is Dead", icons.cross)
             self.setObservation()
+
+            for gen,phen in self.DNAPolicy.items():
+                print (gen,phen)
 
     # Observations
     def setPopulationObservation(self):
@@ -139,11 +143,10 @@ class Agent:
         print(colored("\t\tInner ", "red", attrs=['bold']), self.observation["inner"])
         print(colored("\t\tFocus ", "red", attrs=['bold']), self.observation["focus"])
         print(colored("\t\tBest Offer ", "red", attrs=['bold']), self.observation["bestOffer"])
-        self.filteredObservation()
 
     def filteredObservation(self):
         print("\t", icons.fisheye, colored("Filtered Observation", "grey", attrs=["concealed"]))
-        header=[]
+        header = []
         obs = []
 
         def filterField(field, config, val, color="cyan"):
@@ -152,8 +155,8 @@ class Agent:
                   config["resolution"])
             return obs
 
-        #POPULATION
-        #MALE FEMALE RATIO
+        # POPULATION
+        # MALE FEMALE RATIO
         if self.config["observation filter"]["population"]["ratio"]["active"]:
             header.append("Male/female ratio")
             if "ratio" in self.observation["population"]:
@@ -161,7 +164,7 @@ class Agent:
                                        self.observation["population"]["ratio"][0]))
             else:
                 obs.append(None)
-        #MALE FEMALE MEANS
+        # MALE FEMALE MEANS
         if self.config["observation filter"]["population"]["mean"]["active"]:
             header.append("Male mean")
             header.append("Female mean")
@@ -187,35 +190,35 @@ class Agent:
                 obs.append(None)
                 obs.append(None)
 
-        #INNER
-        #SELF AGE
+        # INNER
+        # SELF AGE
         if self.config["observation filter"]["inner"]["age"]["active"]:
             header.append("Self-Age")
             obs.append(filterField("Self Age", self.config["observation filter"]["inner"]["age"],
                                    self.observation["inner"]["age"], "magenta"))
-        #SELF SMV
+        # SELF SMV
         if self.config["observation filter"]["inner"]["SMV"]["active"]:
             header.append("Self SMV")
             obs.append(filterField("Self SMV", self.config["observation filter"]["inner"]["SMV"],
                                    self.observation["inner"]["SMV"], "magenta"))
-        #SELF-APPRAISAL
+        # SELF-APPRAISAL
         if self.config["observation filter"]["inner"]["self-appraisal"]["active"]:
             header.append("Self-Appraisal")
             obs.append(filterField("self-appraisal", self.config["observation filter"]["inner"]["self-appraisal"],
                                    self.observation["inner"]["self-appraisal"], "magenta"))
-        #REWARDS
+        # REWARDS
         if self.config["observation filter"]["inner"]["reward"]["episode rewards"]["active"]:
             header.append("episode rewards")
             buffer = self.config["observation filter"]["inner"]["reward"]["episode rewards"]["buffer"]
             resolution = self.config["observation filter"]["inner"]["reward"]["episode rewards"]["resolution"]
-            if len(self.rewards)>0:
+            if len(self.rewards) > 0:
                 ep_rew_buffer_sum = sum(self.observation["inner"]["reward"]["episode rewards"][-buffer:])
-                ep_rew_buffer_sum_low_resolution = ep_rew_buffer_sum/resolution
+                ep_rew_buffer_sum_low_resolution = ep_rew_buffer_sum / resolution
                 obs.append(ep_rew_buffer_sum_low_resolution)
             else:
                 obs.append(0)
-        #FOCUS
-        #FOCUS AGE
+        # FOCUS
+        # FOCUS AGE
         if self.config["observation filter"]["focus"]["age"]["active"]:
             header.append("Focus Age")
             if "age" in self.observation["focus"]:
@@ -223,7 +226,7 @@ class Agent:
                                        self.observation["focus"]["age"], "magenta"))
             else:
                 obs.append(None)
-        #FOCUS SMV
+        # FOCUS SMV
         if self.config["observation filter"]["focus"]["SMV"]["active"]:
             header.append("Focus SMV")
             if "SMV" in self.observation["focus"]:
@@ -232,7 +235,7 @@ class Agent:
             else:
                 obs.append(None)
 
-        #BEST OFFER
+        # BEST OFFER
         if self.config["observation filter"]["bestOffer"]["SMV"]["active"]:
             header.append("Best offer SMV")
             if "SMV" in self.observation["bestOffer"]:
@@ -243,9 +246,8 @@ class Agent:
         #
         print("\n")
         print("Header", header)
-        print("\n")
         print("OBS", obs)
-
+        return obs
 
         # #FILTER INNER OBSERVATION
         # if self.config["observation filter"]["inner"]["age"]["active"]:
@@ -289,20 +291,50 @@ class Agent:
         #
         #           )
 
+    def chooseAction(self, options):
+        total = sum(options.values())
+       #print("total",total)
+        selector = random.uniform(0,total )
+
+        for action , score in options.items():
+            #print(action,score,selector)
+            if selector < score:
+                return action
+            else:
+                selector -= score
+        return "explore"
+
     # ACTIONS
     def actionSpaceSample(self):
         if self.alive:
-            self.selected_action = np.random.choice(self.config["action space"])
+
+            self.setObservation()
+            self.filterd_observation = tuple(self.filteredObservation())
+
+            # New State
+            if self.filterd_observation not in self.DNAPolicy:
+                self.DNAPolicy[(self.filterd_observation)] = {}
+                for action in self.config["action space"]:
+                    self.DNAPolicy[(self.filterd_observation)][action] = np.random.rand()
+
+            print(self.DNAPolicy[(self.filterd_observation)])
+
+
+            #self.selected_action = np.random.choice(self.config["action space"])
+            self.selected_action= self.chooseAction(self.DNAPolicy[(self.filterd_observation)])
+
+
+
             self.pickAction(self.selected_action)
+
+            action_cost = int(self.config["reward policy"][self.selected_action])
+            self.episode_reward += action_cost
+            print("\t", icons.spade, colored(self.selected_action, "green", attrs=['bold']), "reward:", action_cost)
 
     def pickAction(self, action, target=None):
         print("\n", icons.man, self.personalData(self))
         print("\t", icons.fisheye, colored("Pre Action Observation", "grey", attrs=["concealed"]))
-        self.setObservation()
 
-        action_cost = int(self.config["reward policy"][action])
-        self.episode_reward += action_cost
-        print("\t", icons.spade, colored(action, "green", attrs=['bold']), "reward:", action_cost)
         if action == 'showObservation':
             None
         if action == 'explore':
