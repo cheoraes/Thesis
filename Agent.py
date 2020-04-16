@@ -9,7 +9,9 @@ from termcolor import colored, cprint
 
 class Agent:
 
-    def __init__(self, SMV, population, config):
+    def __init__(self, id, SMV, population, config, DNAPolicy, main_log):
+
+        self.id = id
         self.population = population
         self.config = config
         self.SMV = SMV
@@ -30,16 +32,68 @@ class Agent:
         self.selected_action = None
         self.episode_reward = 0
         self.rewards = []
-        self.DNAPolicy = {}
+        self.DNAPolicy = DNAPolicy
+        self.main_log = main_log
+        self.log = [{
+            "id": self.id,
+            "action": "creation",
+            "name": self.name,
+            "SMV": self.SMV,
+            "gender": self.gender,
+            "age": -1,
+            "self-appraisal": self.selfAppraisal,
 
-        print(colored("Creation:", 'green'), self.personalData(self))
+        }]
+        self.main_log.append(self.log[-1])
+
+    def render(self):
+        print("------------------------")
+        line = self.log[-1]
+        if line["action"] == "creation":
+            print(colored("Creation:", 'green'), self.personalData(self))
+        if line["action"] in ("toAge",
+                              "explore",
+                              "offerSex",
+                              "acceptBestSexOffer",
+                              "increaseSelfAppraisal",
+                              "decreaseSelfAppraisal",
+                              "setPopulationObservation",):
+            # Action
+            print(icons.AQUARIUS, colored(line["action"], 'green'), self.personalData(self))
+            # Observations
+            print(colored("\tTotal Observation", "blue"))
+            print(colored("\t\t Population ", "red", attrs=['bold']), line["observation"]["population"])
+            print(colored("\t\t Inner ", "red", attrs=['bold']), line["observation"]["inner"])
+            print(colored("\t\t Focus ", "red", attrs=['bold']), line["observation"]["focus"])
+            print(colored("\t\t Best Offer ", "red", attrs=['bold']), line["observation"]["bestOffer"])
+            print(colored("\tFiltered Observation", "blue"))
+            print("\t\t", line["filtered observation"])
+        if line["action"] == "explore":
+            print(colored("\tResults", "blue"))
+            print("\t\t Action cost", line["action cost"])
+            print("\t\t", line["result"]["type"], line["result"]["name"], line["result"]["SMV"])
+            # print(json.dumps(line,indent=4))
+
+        if line["action"] == "toAge":
+            print(colored("\tResults", "blue"))
+            print("\t\t Episode reward", line["results"]["episode reward"])
+            if line["results"]["alive"]:
+                print("\t\t still Alive")
+            else :
+                print("\t\t is Dead")
+
+
+
+        print("------------------------")
+        print("\n")
 
     def personalData(self, agent):
         gender_icon = icons.male if agent.gender == "male" else icons.female
         color = 'blue' if agent.gender == "male" else 'magenta'
         attributes = []
 
-        return colored(agent.name + " (" + str(self.age) + ") " + gender_icon + str(agent.SMV), color,
+        return colored(agent.name + "-" + str(self.id) + " (" + str(self.age) + ") " + gender_icon + str(agent.SMV),
+                       color,
                        attrs=attributes)
 
     def showFocus(self):
@@ -61,23 +115,42 @@ class Agent:
         color = 'cyan'
         attributes = ['bold']
         self.sexOfferees.append(agent)
-        print("\t\t", self.personalData(self), colored("gets Sex Offer from ", color, attrs=attributes),
-              self.personalData(agent))
+        # print("\t\t", self.personalData(self), colored("gets Sex Offer from ", color, attrs=attributes),
+        #      self.personalData(agent))
 
     def toAge(self):
-        self.rewards.append(self.episode_reward)
-        print("\t", icons.diamond, "toAge", self.personalData(self), "Episode Reward", self.episode_reward,
-              "Total Reward",
-              sum(self.rewards))
-        self.episode_reward = 0
-        self.age += 1
-        if self.age >= self.lifeExpectancy:
-            self.alive = False
-            print("\t\t", icons.cross, self.personalData(self), "is Dead", icons.cross)
-            self.setObservation()
+        if self.alive:
+            self.rewards.append(self.episode_reward)
+            #print("\t", icons.diamond, "toAge", self.personalData(self), "Episode Reward", self.episode_reward,
+            #      "Total Reward",
+            #      sum(self.rewards))
 
-            for gen,phen in self.DNAPolicy.items():
-                print (gen,phen)
+            self.age += 1
+            if self.age >= self.lifeExpectancy:
+                self.alive = False
+                #print("\t\t", icons.cross, self.personalData(self), "is Dead", icons.cross)
+                #self.setObservation()
+
+            self.log.append({
+                "id": self.id,
+                "action":"toAge",
+                "observation": self.observation,
+                "filtered observation": {
+                    "header": self.filtered_observation_header,
+                    "observation": self.filtered_observation,
+                },
+                "name": self.name,
+                "gender": self.gender,
+                "age": self.age,
+                "self-appraisal": self.selfAppraisal,
+                "results":{"episode reward":self.episode_reward,
+                           "total rewards":sum(self.rewards),
+                           "alive":self.alive,
+                           }
+            })
+            self.episode_reward = 0
+            # for gen,phen in self.DNAPolicy.items():
+            #     print (gen,phen)
 
     # Observations
     def setPopulationObservation(self):
@@ -108,6 +181,7 @@ class Agent:
     def setInnerObservation(self):
         self.observation["inner"] = {
             "age": self.age,
+            "gender": self.gender,
             "SMV": self.SMV,
             "self-appraisal": self.selfAppraisal,
             "reward": {
@@ -116,10 +190,15 @@ class Agent:
         }
 
     def setFocusObservation(self):
+
         if self.focus is not None:
+
             self.observation["focus"] = {
-                "age": int(self.focus.age / self.focus.config["resolution"]["age"]),
-                "SMV": self.focus.SMV
+                "age": self.focus.age,
+                "SMV": self.focus.SMV,
+                "gender": self.focus.gender,
+                "name": self.focus.name,
+                "id": self.focus.id,
             }
         else:
             self.observation["focus"] = {}
@@ -130,6 +209,9 @@ class Agent:
             self.observation["bestOffer"] = {
                 "name": self.sexOfferees[0].name,
                 "SMV": self.sexOfferees[0].SMV,
+                "gender": self.sexOfferees[0].gender,
+                "age": self.sexOfferees[0].age,
+                "id":self.sexOfferees[0].id,
             }
         else:
             self.observation["bestOffer"] = {}
@@ -139,20 +221,17 @@ class Agent:
         self.setFocusObservation()
         self.setBestOfferObservation()
 
-        print(colored("\t\tPopulation ", "red", attrs=['bold']), self.observation["population"])
-        print(colored("\t\tInner ", "red", attrs=['bold']), self.observation["inner"])
-        print(colored("\t\tFocus ", "red", attrs=['bold']), self.observation["focus"])
-        print(colored("\t\tBest Offer ", "red", attrs=['bold']), self.observation["bestOffer"])
-
     def filteredObservation(self):
-        print("\t", icons.fisheye, colored("Filtered Observation", "grey", attrs=["concealed"]))
-        header = []
+        # print("\t", icons.fisheye, colored("Filtered Observation", "grey", attrs=["concealed"]))
+
         obs = []
+        header = ["Self Gender"]
+        obs.append(self.gender)
 
         def filterField(field, config, val, color="cyan"):
             obs = int(val / config["resolution"])
-            print(colored("\t\t" + field, color, attrs=['bold']), "obs", obs, "| val", val, "| res",
-                  config["resolution"])
+            # print(colored("\t\t" + field, color, attrs=['bold']), "obs", obs, "| val", val, "| res",
+            #      config["resolution"])
             return obs
 
         # POPULATION
@@ -244,60 +323,18 @@ class Agent:
             else:
                 obs.append(None)
         #
-        print("\n")
+        # print("\n")
         print("Header", header)
-        print("OBS", obs)
-        return obs
-
-        # #FILTER INNER OBSERVATION
-        # if self.config["observation filter"]["inner"]["age"]["active"]:
-        #     field = "Age"
-        #     val = self.observation["inner"]["age"]
-        #     res = self.config["observation filter"]["inner"]["age"]["resolution"]
-        #     obs = int(val/res)
-        #     print(colored("\t\t"+ field, "cyan", attrs=['bold']),"obs", obs, "| val", val, "| res" ,res)
-        #
-        # if self.config["observation filter"]["inner"]["SMV"]["active"]:
-        #     field = "SMV"
-        #     val = self.observation["inner"]["SMV"]
-        #     res = self.config["observation filter"]["inner"]["SMV"]["resolution"]
-        #     obs = int(val / res)
-        #     print(colored("\t\t" + field, "cyan", attrs=['bold']), "obs", obs, "| val", val, "| res", res)
-
-        # if self.config["observation filter"]["inner"]["SMV"][0]:
-        #     SMV_observation = int(self.observation["inner"]["SMV"]/self.config["observation filter"]["inner"]["SMV"][1])
-        #     print(colored("\t\tSMV observation:", "cyan", attrs=['bold']), SMV_observation,
-        #           ", SMV:", self.observation["inner"]["SMV"],
-        #           ", resolution:", self.config["observation filter"]["inner"]["SMV"][1],
-        #           )
-        # if self.config["observation filter"]["inner"]["self-appraisal"][0]:
-        #     selfAppraisal_observation = int(self.observation["inner"]["self-appraisal"]/self.config["observation filter"]["inner"]["self-appraisal"][1])
-        #     print(colored("\t\tSelf-appraisal obs:", "cyan", attrs=['bold']), selfAppraisal_observation,
-        #           ", Self-appraisal:", self.observation["inner"]["self-appraisal"],
-        #           ", resolution:", self.config["observation filter"]["inner"]["self-appraisal"][1],
-        #           )
-        # if self.config["observation filter"]["inner"]["reward"]["episode rewards"][0]:
-        #     buffer = self.config["observation filter"]["inner"]["reward"]["episode rewards"][1]
-        #     resolution =
-        #     ep_rew_buffer_sum = sum(self.observation["inner"]["reward"]["episode rewards"][-buffer:])
-        #     ep_rew_buffer_sum_low_res =
-        #     episode_rewards_observation_buffer_sum = sum(self.observation["inner"]["reward"]["episode rewards"][-buffer:])
-        #
-        #
-        #     episode_rewards_observation_buffer_sum_low_resolution = int(episode_rewards_observation_buffer_sum_obs/self.config["observation filter"]["inner"]["reward"]["episode rewards"][2])
-        #     print(colored("\t\tEpisode rewards buffer sum observation:", "cyan", attrs=['bold']), episode_rewards_observation_buffer_sum_obs,
-        #           ", Buffer:", self.observation["inner"]["self-appraisal"],
-        #           ", resolution:", self.config["observation filter"]["inner"]["self-appraisal"][1],
-        #
-        #           )
+        # print("OBS", obs)
+        return tuple(obs) , tuple(header)
 
     def chooseAction(self, options):
         total = sum(options.values())
-       #print("total",total)
-        selector = random.uniform(0,total )
+        # print("total",total)
+        selector = random.uniform(0, total)
 
-        for action , score in options.items():
-            #print(action,score,selector)
+        for action, score in options.items():
+            # print(action,score,selector)
             if selector < score:
                 return action
             else:
@@ -307,33 +344,44 @@ class Agent:
     # ACTIONS
     def actionSpaceSample(self):
         if self.alive:
-
             self.setObservation()
-            self.filterd_observation = tuple(self.filteredObservation())
+            self.filtered_observation, self.filtered_observation_header = self.filteredObservation()
 
             # New State
-            if self.filterd_observation not in self.DNAPolicy:
-                self.DNAPolicy[(self.filterd_observation)] = {}
+            if self.filtered_observation not in self.DNAPolicy:
+                self.DNAPolicy[(self.filtered_observation)] = {}
                 for action in self.config["action space"]:
-                    self.DNAPolicy[(self.filterd_observation)][action] = np.random.rand()
+                    self.DNAPolicy[(self.filtered_observation)][action] = np.random.rand()
 
-            print(self.DNAPolicy[(self.filterd_observation)])
+            # print(self.DNAPolicy[(self.filterd_observation)])
 
+            # self.selected_action = np.random.choice(self.config["action space"])
 
-            #self.selected_action = np.random.choice(self.config["action space"])
-            self.selected_action= self.chooseAction(self.DNAPolicy[(self.filterd_observation)])
+            self.log.append({
+                "id": self.id,
+                "observation": self.observation,
+                "filtered observation": {
+                    "header": self.filtered_observation_header,
+                    "observation":self.filtered_observation,
+                },
+                "name": self.name,
+                "gender": self.gender,
+                "age": self.age,
+                "self-appraisal": self.selfAppraisal,
+            })
 
+            self.selected_action = self.chooseAction(self.DNAPolicy[(self.filtered_observation)])
+            action_cost = int(self.config["reward policy"][self.selected_action])
 
+            self.log[-1]["action"] = self.selected_action
+            self.log[-1]["action cost"] = action_cost
 
             self.pickAction(self.selected_action)
 
-            action_cost = int(self.config["reward policy"][self.selected_action])
             self.episode_reward += action_cost
-            print("\t", icons.spade, colored(self.selected_action, "green", attrs=['bold']), "reward:", action_cost)
+            # print("\t", icons.spade, colored(self.selected_action, "green", attrs=['bold']), "reward:", action_cost)
 
     def pickAction(self, action, target=None):
-        print("\n", icons.man, self.personalData(self))
-        print("\t", icons.fisheye, colored("Pre Action Observation", "grey", attrs=["concealed"]))
 
         if action == 'showObservation':
             None
@@ -355,8 +403,8 @@ class Agent:
         if action == 'decreaseSelfAppraisal':
             self.updateSelfAppraisal(-1)
 
-        self.showFocus()
-        self.showSexOffereeList()
+        # self.showFocus()
+        # self.showSexOffereeList()
 
     def updateSelfAppraisal(self, val):
         color = 'grey'
@@ -364,17 +412,21 @@ class Agent:
         old = self.selfAppraisal
         self.selfAppraisal += val
         if self.selfAppraisal < 0: self.selfAppraisal = 0
-        print("\t\t", self.personalData(self), colored("update Self-appraisal", color, attrs=attributes),
-              "(" + str(val) + ") ",
-              old, "-->", self.selfAppraisal)
+        # print("\t\t", self.personalData(self), colored("update Self-appraisal", color, attrs=attributes),
+        #      "(" + str(val) + ") ",
+        #      old, "-->", self.selfAppraisal)
 
     def explore(self):
-        color = 'grey'
-        attributes = ['bold']
         candidates = list(filter(lambda obj: obj.gender != self.gender, self.population))
         self.focus = random.choice(candidates)
-        print("\t\t", self.personalData(self), colored("runs investigation on:", color, attrs=attributes),
-              self.personalData(self.focus))
+        self.log[-1]["result"] = {"type": "set focus on ",
+                                  "id": self.focus.id,
+                                  "name": self.focus.name,
+                                  "gender": self.gender,
+                                  "SMV": self.focus.SMV,
+                                  }
+
+        # print("\t\t", self.personalData(self), colored("runs investigation on:", color, attrs=attributes),self.personalData(self.focus))
 
     def offerSex(self):
         color = 'yellow'
@@ -394,7 +446,7 @@ class Agent:
             reward_to_me = self.config["reward policy"]["sex"][sexPartner.SMV]
             sexPartner.episode_reward += reward_to_sexPartner
             self.episode_reward += reward_to_me
-            print("\t\t", self.personalData(self), "reward:", reward_to_me,
-                  colored("accept Best Sex Offer with ", color, attrs=attributes),
-                  self.personalData(sexPartner), "reward", reward_to_sexPartner)
+            # print("\t\t", self.personalData(self), "reward:", reward_to_me,
+            #      colored("accept Best Sex Offer with ", color, attrs=attributes),
+            #      self.personalData(sexPartner), "reward", reward_to_sexPartner)
             self.sexOfferees = []

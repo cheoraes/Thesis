@@ -4,8 +4,8 @@ import ast
 # Population Distribution
 
 
-initial_male_population_SMVs = (3, 4,)
-initial_female_population_SMVs = (4, 2,)
+initial_male_population_SMVs = (4,)
+initial_female_population_SMVs = (1,)
 
 # Data Resolution
 resolution = {
@@ -20,11 +20,11 @@ resolution = {
 
 action_space = [
     "explore",
-    "offerSex",
-    "acceptBestSexOffer",
-    "increaseSelfAppraisal",
-    "decreaseSelfAppraisal",
-    "setPopulationObservation",
+    #"offerSex",
+    #"acceptBestSexOffer",
+    #"increaseSelfAppraisal",
+    #"decreaseSelfAppraisal",
+    #"setPopulationObservation",
 ]
 
 
@@ -101,7 +101,7 @@ reward_policy = {
 # Male Cconfiguration
 male = {
     "gender": "male",
-    "life expectancy": 50,
+    "life expectancy": 3,
     "self-appraisal": 5,
     "resolution": resolution,
     "reward policy": reward_policy,
@@ -112,7 +112,7 @@ male = {
 # Female Configuration
 female = {
     "gender": "female",
-    "life expectancy": 50,
+    "life expectancy": 3,
     "self-appraisal": 5,
     "resolution": resolution,
     "reward policy": reward_policy,
