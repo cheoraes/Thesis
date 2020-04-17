@@ -67,7 +67,11 @@ class Agent:
             print(colored("\t\t Focus ", "red", attrs=['bold']), line["observation"]["focus"])
             print(colored("\t\t Best Offer ", "red", attrs=['bold']), line["observation"]["bestOffer"])
             print(colored("\tFiltered Observation", "blue"))
-            print("\t\t", line["filtered observation"])
+            print("\t\t", line["filtered observation"]["header"])
+            print("\t\t", line["filtered observation"]["observation"])
+            print(colored("\tResults", "blue"))
+            print(json.dumps(line["results"], indent=4, sort_keys=True))
+        '''
         if line["action"] == "explore":
             print(colored("\tResults", "blue"))
             print("\t\t Action cost", line["action cost"])
@@ -77,12 +81,12 @@ class Agent:
         if line["action"] == "toAge":
             print(colored("\tResults", "blue"))
             print("\t\t Episode reward", line["results"]["episode reward"])
+            print("\t\t Total Reward", line["results"]["total reward"])
             if line["results"]["alive"]:
                 print("\t\t still Alive")
             else :
                 print("\t\t is Dead")
-
-
+        '''
 
         print("------------------------")
         print("\n")
@@ -121,19 +125,19 @@ class Agent:
     def toAge(self):
         if self.alive:
             self.rewards.append(self.episode_reward)
-            #print("\t", icons.diamond, "toAge", self.personalData(self), "Episode Reward", self.episode_reward,
+            # print("\t", icons.diamond, "toAge", self.personalData(self), "Episode Reward", self.episode_reward,
             #      "Total Reward",
             #      sum(self.rewards))
 
             self.age += 1
             if self.age >= self.lifeExpectancy:
                 self.alive = False
-                #print("\t\t", icons.cross, self.personalData(self), "is Dead", icons.cross)
-                #self.setObservation()
+                # print("\t\t", icons.cross, self.personalData(self), "is Dead", icons.cross)
+                # self.setObservation()
 
             self.log.append({
                 "id": self.id,
-                "action":"toAge",
+                "action": "toAge",
                 "observation": self.observation,
                 "filtered observation": {
                     "header": self.filtered_observation_header,
@@ -143,10 +147,11 @@ class Agent:
                 "gender": self.gender,
                 "age": self.age,
                 "self-appraisal": self.selfAppraisal,
-                "results":{"episode reward":self.episode_reward,
-                           "total rewards":sum(self.rewards),
-                           "alive":self.alive,
-                           }
+                "results": {"episode reward": self.episode_reward,
+                            "total rewards": sum(self.rewards),
+                            "alive": self.alive,
+
+                            }
             })
             self.episode_reward = 0
             # for gen,phen in self.DNAPolicy.items():
@@ -174,9 +179,8 @@ class Agent:
             "std": [male_std, female_std],
             "median": [male_median, female_median],
         }
-
-        print("\t\t", colored("setPopulationObservation:", 'grey'), self.personalData(self))
-        print("\t\t\t", self.observation["population"])
+        self.log[-1]["results"] = self.observation["population"]
+        self.log[-1]["results"]["type"] = "set Population Observation"
 
     def setInnerObservation(self):
         self.observation["inner"] = {
@@ -211,7 +215,7 @@ class Agent:
                 "SMV": self.sexOfferees[0].SMV,
                 "gender": self.sexOfferees[0].gender,
                 "age": self.sexOfferees[0].age,
-                "id":self.sexOfferees[0].id,
+                "id": self.sexOfferees[0].id,
             }
         else:
             self.observation["bestOffer"] = {}
@@ -222,7 +226,6 @@ class Agent:
         self.setBestOfferObservation()
 
     def filteredObservation(self):
-        # print("\t", icons.fisheye, colored("Filtered Observation", "grey", attrs=["concealed"]))
 
         obs = []
         header = ["Self Gender"]
@@ -326,7 +329,7 @@ class Agent:
         # print("\n")
         print("Header", header)
         # print("OBS", obs)
-        return tuple(obs) , tuple(header)
+        return tuple(obs), tuple(header)
 
     def chooseAction(self, options):
         total = sum(options.values())
@@ -362,7 +365,7 @@ class Agent:
                 "observation": self.observation,
                 "filtered observation": {
                     "header": self.filtered_observation_header,
-                    "observation":self.filtered_observation,
+                    "observation": self.filtered_observation,
                 },
                 "name": self.name,
                 "gender": self.gender,
@@ -411,7 +414,12 @@ class Agent:
         attributes = ['bold']
         old = self.selfAppraisal
         self.selfAppraisal += val
-        if self.selfAppraisal < 0: self.selfAppraisal = 0
+        if self.selfAppraisal < 0:
+            self.selfAppraisal = 0
+        self.log[-1]["results"] = {"type": "update self-appraisal",
+                                   "old self-appraisal": old,
+                                   "new self-appraisal": self.selfAppraisal,
+                                   }
         # print("\t\t", self.personalData(self), colored("update Self-appraisal", color, attrs=attributes),
         #      "(" + str(val) + ") ",
         #      old, "-->", self.selfAppraisal)
@@ -419,26 +427,33 @@ class Agent:
     def explore(self):
         candidates = list(filter(lambda obj: obj.gender != self.gender, self.population))
         self.focus = random.choice(candidates)
-        self.log[-1]["result"] = {"type": "set focus on ",
-                                  "id": self.focus.id,
-                                  "name": self.focus.name,
-                                  "gender": self.gender,
-                                  "SMV": self.focus.SMV,
-                                  }
+        self.log[-1]["results"] = {"type": "set focus on ",
+                                   "focus-id": self.focus.id,
+                                   "focus-name": self.focus.name,
+                                   "gender": self.gender,
+                                   "SMV": self.focus.SMV,
+                                   }
 
         # print("\t\t", self.personalData(self), colored("runs investigation on:", color, attrs=attributes),self.personalData(self.focus))
 
     def offerSex(self):
-        color = 'yellow'
-        attributes = ['bold']
         if self.focus is not None:
-            print("\t\t", self.personalData(self), colored("offers sex to", color, attrs=attributes),
-                  self.personalData(self.focus))
             self.focus.getSexOffer(self);
+            self.log[-1]["results"] = {"type": "offer Sex",
+                                       "focus-id": self.focus.id,
+                                       "focus-name": self.focus.name,
+                                       "gender": self.gender,
+                                       "SMV": self.focus.SMV,
+                                       }
+        else:
+            self.log[-1]["results"] = {"type": "offer Sex",
+                                       "focus-id": "None",
+                                       "focus-name": "None",
+                                       "gender": "None",
+                                       "SMV": "None",
+                                       }
 
     def acceptBestSexOffer(self):
-        color = 'green'
-        attributes = ['bold']
         if len(self.sexOfferees) > 0:
             self.sexOfferees.sort(key=lambda obj: obj.SMV, reverse=True)
             sexPartner = self.sexOfferees.pop(0)
@@ -446,7 +461,21 @@ class Agent:
             reward_to_me = self.config["reward policy"]["sex"][sexPartner.SMV]
             sexPartner.episode_reward += reward_to_sexPartner
             self.episode_reward += reward_to_me
-            # print("\t\t", self.personalData(self), "reward:", reward_to_me,
-            #      colored("accept Best Sex Offer with ", color, attrs=attributes),
-            #      self.personalData(sexPartner), "reward", reward_to_sexPartner)
+            self.log[-1]["results"] = {"type": "offer Sex",
+                                       "sex-partner-id": sexPartner.id,
+                                       "sex-partner-name": sexPartner.name,
+                                       "sex-partner-gender": sexPartner.gender,
+                                       "sex-partner-SMV": sexPartner.SMV,
+                                       "sex-partner-reward": reward_to_sexPartner,
+                                       "self-reward": reward_to_me,
+                                       }
             self.sexOfferees = []
+
+        self.log[-1]["results"] = {"type": "offer Sex",
+                                   "sex-partner-id": "None",
+                                   "sex-partner-name": "None",
+                                   "sex-partner-gender": "None",
+                                   "sex-partner-SMV": "None",
+                                   "sex-partner-reward": "None",
+                                   "self-reward": "None",
+                                   }

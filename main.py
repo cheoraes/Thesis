@@ -93,6 +93,9 @@ while any_alive:
         if agent.alive == True:
             any_alive = True
 
+for agent in Agents:
+    print(agent.personalData(agent), sum(agent.rewards))
+
 
 # print(json.dumps(main_log, indent=4))
 '''    
