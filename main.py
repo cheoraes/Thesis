@@ -12,6 +12,7 @@ from matplotlib import pyplot as plt
 
 from Agent import Agent
 import config
+import DNA
 
 # Population Description
 
@@ -72,31 +73,66 @@ plt.ylabel('#Agents')
 Agents = []
 main_log = []
 id = 0
-for i in config.initial_male_population_SMVs:
-    Agents.append(Agent(SMV=i, id=id, population=Agents, config=config.male, DNAPolicy={}, main_log=main_log))
-    Agents[-1].render()
-    id += 1
-for i in config.initial_female_population_SMVs:
-    Agents.append(Agent(SMV=i, id=id, population=Agents, config=config.female, DNAPolicy={}, main_log=main_log))
-    Agents[-1].render()
-    id += 1
 
+render = False
+renders = (config.generations,)
+DNAPolicy = {}
+
+for iGen in range(config.generations):
+    if iGen in renders:
+        render = True
+    else:
+        render = False
+    if render:
+        print("Generation ", iGen)
+    for i in config.initial_male_population_SMVs:
+        Agents.append(
+            Agent(SMV=i, id=id, population=Agents, config=config.male, DNAPolicy=DNAPolicy, main_log=main_log))
+        id += 1
+        Agents[-1].render(render)
+    for i in config.initial_female_population_SMVs:
+        Agents.append(
+            Agent(SMV=i, id=id, population=Agents, config=config.female, DNAPolicy=DNAPolicy, main_log=main_log))
+        id += 1
+        Agents[-1].render(render)
+
+    any_alive = True
+    while any_alive:
+        any_alive = False
+        for agent in Agents:
+            agent.actionSpaceSample()
+            agent.render(render)
+        for agent in Agents:
+            agent.toAge()
+            agent.render(render)
+            if agent.alive == True:
+                any_alive = True
+    if render:
+        for agent in Agents:
+            print(agent.personalData(agent), sum(agent.rewards))
+            print(Agents[-1].DNAPolicy)
+    DNAPolicy = DNA.GeneticRecombination(Agents)
+    Agents = []
+
+
+'''    
 any_alive = True
 while any_alive:
     any_alive = False
     for agent in Agents:
         agent.actionSpaceSample()
-        agent.render()
+        if render:
+            agent.render()
     for agent in Agents:
         agent.toAge()
-        agent.render()
+        if render:
+            agent.render()
         if agent.alive == True:
             any_alive = True
-
 for agent in Agents:
     print(agent.personalData(agent), sum(agent.rewards))
 
-
+'''
 # print(json.dumps(main_log, indent=4))
 '''    
 # print("GENERATION")
@@ -217,7 +253,7 @@ for gen, phen in Agents[0].DNAPolicy.items():
 #     for agent in Agents:
 #         agent.toAge()
 
-print("\n--END OF SEASON ", i, "------------------------------\n")
+#print("\n--END OF SEASON ", i, "------------------------------\n")
 
 
 def getNewGeneration():

@@ -46,50 +46,35 @@ class Agent:
         }]
         self.main_log.append(self.log[-1])
 
-    def render(self):
-        print("------------------------")
-        line = self.log[-1]
-        if line["action"] == "creation":
-            print(colored("Creation:", 'green'), self.personalData(self))
-        if line["action"] in ("toAge",
-                              "explore",
-                              "offerSex",
-                              "acceptBestSexOffer",
-                              "increaseSelfAppraisal",
-                              "decreaseSelfAppraisal",
-                              "setPopulationObservation",):
-            # Action
-            print(icons.AQUARIUS, colored(line["action"], 'green'), self.personalData(self))
-            # Observations
-            print(colored("\tTotal Observation", "blue"))
-            print(colored("\t\t Population ", "red", attrs=['bold']), line["observation"]["population"])
-            print(colored("\t\t Inner ", "red", attrs=['bold']), line["observation"]["inner"])
-            print(colored("\t\t Focus ", "red", attrs=['bold']), line["observation"]["focus"])
-            print(colored("\t\t Best Offer ", "red", attrs=['bold']), line["observation"]["bestOffer"])
-            print(colored("\tFiltered Observation", "blue"))
-            print("\t\t", line["filtered observation"]["header"])
-            print("\t\t", line["filtered observation"]["observation"])
-            print(colored("\tResults", "blue"))
-            print(json.dumps(line["results"], indent=4, sort_keys=True))
-        '''
-        if line["action"] == "explore":
-            print(colored("\tResults", "blue"))
-            print("\t\t Action cost", line["action cost"])
-            print("\t\t", line["result"]["type"], line["result"]["name"], line["result"]["SMV"])
-            # print(json.dumps(line,indent=4))
+    def render(self, render):
+        if render:
+            print("------------------------")
+            line = self.log[-1]
+            if line["action"] == "creation":
+                print(colored("Creation:", 'green'), self.personalData(self))
+            if line["action"] in ("toAge",
+                                  "explore",
+                                  "offerSex",
+                                  "acceptBestSexOffer",
+                                  "increaseSelfAppraisal",
+                                  "decreaseSelfAppraisal",
+                                  "setPopulationObservation",):
+                # Action
+                print(icons.AQUARIUS, colored(line["action"], 'green'), self.personalData(self))
+                # Observations
+                print(colored("\tTotal Observation", "blue"))
+                print(colored("\t\t Population ", "red", attrs=['bold']), line["observation"]["population"])
+                print(colored("\t\t Inner ", "red", attrs=['bold']), line["observation"]["inner"])
+                print(colored("\t\t Focus ", "red", attrs=['bold']), line["observation"]["focus"])
+                print(colored("\t\t Best Offer ", "red", attrs=['bold']), line["observation"]["bestOffer"])
+                print(colored("\tFiltered Observation", "blue"))
+                print("\t\t", line["filtered observation"]["header"])
+                print("\t\t", line["filtered observation"]["observation"])
+                print(colored("\tResults", "blue"))
+                print(json.dumps(line["results"], indent=4, sort_keys=True))
 
-        if line["action"] == "toAge":
-            print(colored("\tResults", "blue"))
-            print("\t\t Episode reward", line["results"]["episode reward"])
-            print("\t\t Total Reward", line["results"]["total reward"])
-            if line["results"]["alive"]:
-                print("\t\t still Alive")
-            else :
-                print("\t\t is Dead")
-        '''
+            print("------------------------")
 
-        print("------------------------")
-        print("\n")
 
     def personalData(self, agent):
         gender_icon = icons.male if agent.gender == "male" else icons.female
@@ -327,7 +312,7 @@ class Agent:
                 obs.append(None)
         #
         # print("\n")
-        print("Header", header)
+        # print("Header", header)
         # print("OBS", obs)
         return tuple(obs), tuple(header)
 

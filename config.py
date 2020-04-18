@@ -4,8 +4,11 @@ import ast
 # Population Distribution
 
 
-initial_male_population_SMVs = (4,)
-initial_female_population_SMVs = (1,)
+initial_male_population_SMVs = (2,3,)
+initial_female_population_SMVs = (1,2,3 )
+
+generations = 1
+
 
 # Data Resolution
 resolution = {
