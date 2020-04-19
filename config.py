@@ -4,12 +4,13 @@ import ast
 # Population Distribution
 
 
-initial_male_population_SMVs = (2,3,)
-initial_female_population_SMVs = (1,2,3 )
+initial_male_population_SMVs = (2,3,4,5,3,4,5,)
+initial_female_population_SMVs = (1,2,3,4,3,4,5, )
 
 generations = 1
-
-
+DNACombineMethod = "best score"
+#DNACombineMethod = "best score by sexual market value"
+fitnessPow = 1.2
 # Data Resolution
 resolution = {
     "ratio": 0.1,

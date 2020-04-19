@@ -45,6 +45,7 @@ class Agent:
 
         }]
         self.main_log.append(self.log[-1])
+        self.fitness = 0
 
     def render(self, render):
         if render:
